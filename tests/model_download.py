@@ -10,10 +10,10 @@ logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
     description = (
-        "Downloads the pre-trained model and tokenizer that is used in testing"
+        "Downloads the pre-trained models and tokenizers that is used in testing"
     )
     parser = argparse.ArgumentParser(description=description)
-    parser.add_argument("cache_directory", type=Path)
+    parser.add_argument("cache_directory", type=Path, help="Directory to save the models to.")
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO)

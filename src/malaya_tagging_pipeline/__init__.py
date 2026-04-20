@@ -31,6 +31,10 @@ def custom_malayaload(
     path: str = __name__,
     **kwargs: Any
     ) -> Tagging:
+    """
+    This is a patch for the malaya.pos.load function to support Python versions > 3.10 
+    as the current function uses `inspect.getargspec` which is not supported in Python 3.10.
+    """
     additional_parameters = {
         'from_lang': 'from lang',
         'to_lang': 'to lang',
@@ -54,6 +58,23 @@ malaya.pos.load = custom_malayaload  # ty: ignore[invalid-assignment]
 
 
 def stem_tokens(lemmatizer: MalayaStem, tokens: list[str]) -> list[str]:
+    """
+    Calls the lemmatizer across the given tokens to generate a list of lemmas
+    for each token.
+
+    Before using the lemmatizer, the lemmatizer is put into torch evaluation mode 
+    and is used within a torch inference context.
+
+    Args:
+        lemmatizer: lemmatizer instance.
+        tokens: tokens to be stemmed.
+
+    Returns:
+        A list of lemmas.
+
+    Raises:
+        ValueError: If the number of lemmas is not the same as the number of tokens.
+    """
     lemmatizer.model.eval()
     with torch.inference_mode(mode=True):
         lemmas: list[str] = []
@@ -84,6 +105,23 @@ def stem_tokens(lemmatizer: MalayaStem, tokens: list[str]) -> list[str]:
         return lemmas
 
 def tag_tokens(pos_tagger: MalayaTagging, tokens: list[str]) -> list[str]:
+    """
+    Calls the POS tagger across the given tokens to generate a list of POS tags
+    for each token.
+
+    Before using the POS tagger, the POS tagger is put into torch evaluation mode 
+    and is used within a torch inference context.
+
+    Args:
+        pos_tagger: POS tagger instance.
+        tokens: tokens to be tagged.
+
+    Returns:
+        A list of POS tags.
+
+    Raises:
+        ValueError: If the number of POS tags is not the same as the number of tokens.
+    """
     pos_tagger.model.eval()
     with torch.inference_mode(mode=True):
         pos_tokenizer = pos_tagger.tokenizer
@@ -128,7 +166,21 @@ def tag_tokens(pos_tagger: MalayaTagging, tokens: list[str]) -> list[str]:
         return pos_tags
 
 
-def word_tokenize(tokenizer, text: str, lowercase: bool) -> list[str]:
+def word_tokenize(tokenizer: malaya.tokenizer.Tokenizer, text: str, lowercase: bool) -> list[str]:
+    """
+    Given a tokenizer it returns the text tokenized.
+
+    After tokenizing the text with the tokenizer if any tokens contains any
+    whitespace it will be split by whitespace to generate more tokens.
+
+    Args:
+        tokenizer: tokenizer instance.
+        text: text to be tokenized.
+        lowercase: Whether the tokens should be lowercased.
+
+    Returns:
+        A list of tokens.
+    """
     tokens = tokenizer.tokenize(text, lowercase=lowercase)
     split_tokens = []
     for token in tokens:
