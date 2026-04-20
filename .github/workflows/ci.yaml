@@ -135,7 +135,7 @@ jobs:
         run: mv $HOME/hf_test_model_cache/* $HF_HOME/hub/.
 
       - name: Check cache files
-        run: ls -alh $HF_HOME
+        run: ls $HF_HOME
 
       - name: Code coverage unit testing
         run: |
