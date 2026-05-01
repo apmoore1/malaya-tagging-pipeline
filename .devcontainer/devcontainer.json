@@ -30,5 +30,5 @@
 		}
 		}
   	},
-	"postStartCommand": "uv sync --all-extras"
+	"postStartCommand": "uv sync"
 }

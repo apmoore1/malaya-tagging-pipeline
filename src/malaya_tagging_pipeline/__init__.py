@@ -4,7 +4,6 @@ import re
 from typing import Any, Type, cast
 
 import malaya
-import numpy as np
 import torch
 from malaya.dictionary import is_english as MalayaIsEnglish
 from malaya.text.function import PUNCTUATION as MalayaPUNCTUATION
@@ -126,30 +125,29 @@ def tag_tokens(pos_tagger: MalayaTagging, tokens: list[str]) -> list[str]:
     with torch.inference_mode(mode=True):
         pos_tokenizer = pos_tagger.tokenizer
         pos_tokenizer = cast(PreTrainedTokenizerFast, pos_tokenizer)
-        tokenized_inputs = pos_tokenizer([tokens], truncation=True, is_split_into_words=True)
-
+        tokenized_inputs = pos_tokenizer(tokens,
+                                                  truncation=False,
+                                                  padding=False,
+                                                  is_split_into_words=True,
+                                                  return_tensors='pt')
         label_ids = []
         word_ids: list[int] = tokenized_inputs.word_ids(batch_index=0)
         # Used to determine at decoding time the first sub-word token in a word/token.
-        for _ in tokens:
-            previous_word_idx = None
-            label_ids = []
-            for word_idx in word_ids:
-                if word_idx is None:
-                    label_ids.append(-100)
-                elif word_idx != previous_word_idx:
-                    label_ids.append(1)
-                else:
-                    label_ids.append(-100)
-                previous_word_idx = word_idx
 
-        padded = tokenized_inputs
+        previous_word_idx = None
+        label_ids = []
+        for word_idx in word_ids:
+            if word_idx is None:
+                label_ids.append(-100)
+            elif word_idx != previous_word_idx:
+                label_ids.append(1)
+            else:
+                label_ids.append(-100)
+            previous_word_idx = word_idx
 
-        # converts to torch tensors
-        for k in padded.keys():
-            padded[k] = torch.from_numpy(np.array(padded[k])).to(pos_tagger.model.device)
+        model_inputs = tokenized_inputs.to(device=pos_tagger.model.device)
 
-        pred = pos_tagger.model(**padded)[0]
+        pred = pos_tagger.model(**model_inputs)[0]
         predictions = to_numpy(pred)[0].argmax(axis=1)
         pos_tags: list[str] = []
         for i in range(len(predictions)):

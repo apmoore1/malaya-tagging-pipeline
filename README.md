@@ -108,7 +108,6 @@ tahun   tahun   NOUN
 ```
 
 
-
 ## Setup
 
 You can either use the dev container with your favourite editor, e.g. VSCode. Or you can create your setup locally below we demonstrate both.
@@ -142,7 +141,7 @@ To run locally first ensure you have the following tools installted locally:
 When developing on the project you will want to install the Python package locally in editable format with all the extra requirements, this can be done like so:
 
 ```bash
-uv sync --all-extras
+uv sync
 ```
 
 ### Linting
